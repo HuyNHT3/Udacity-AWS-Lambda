@@ -17,6 +17,7 @@ export async function getTodos(idToken) {
 }
 
 export async function createTodo(idToken, newTodo) {
+  console.log("enpoint: " + process.env.REACT_APP_API_ENDPOINT)
   const response = await Axios.post(
     `${process.env.REACT_APP_API_ENDPOINT}/todos`,
     JSON.stringify(newTodo),
@@ -24,7 +25,8 @@ export async function createTodo(idToken, newTodo) {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${idToken}`
-      }
+      },
+      authorizationToken: idToken
     }
   )
   return response.data.item

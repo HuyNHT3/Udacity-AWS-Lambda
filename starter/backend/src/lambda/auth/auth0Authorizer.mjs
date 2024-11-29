@@ -4,7 +4,8 @@ import { createLogger } from '../../utils/logger.mjs'
 
 const logger = createLogger('auth')
 
-const jwksUrl = 'https://test-endpoint.auth0.com/.well-known/jwks.json'
+const jwksUrl = 'https://dev-ri6mkhyrn1gwratm.us.auth0.com/.well-known/jwks.json'
+
 
 const certificate = `-----BEGIN CERTIFICATE-----
 MIIDHTCCAgWgAwIBAgIJL0SqJwJmidajMA0GCSqGSIb3DQEBCwUAMCwxKjAoBgNV
@@ -28,7 +29,8 @@ dY14ZsFJpbNnqNZddB24AwFu1XRvuC/393eMdwBCRocC
 
 export async function handler(event) {
   try {
-    const jwtToken = await verifyToken(event.authorizationToken)
+    const jwtToken = await verifyToken(event.headers.Authorization)
+    
 
     return {
       principalId: jwtToken.sub,
@@ -64,10 +66,18 @@ export async function handler(event) {
 
 async function verifyToken(authHeader) {
   const token = getToken(authHeader)
-  const jwt = jsonwebtoken.decode(token, { complete: true })
-
   // TODO: Implement token verification
-  return undefined;
+  try {
+    //jsonwebtoken.verify(token, certificate);
+    const decoded = jsonwebtoken.verify(token, certificate);
+    console.log('Decoded payload:', decoded);
+    return decoded;
+
+} catch (error) {
+    console.error('Token verification failed:', error.message);
+}
+
+  return "";
 }
 
 function getToken(authHeader) {
@@ -78,6 +88,6 @@ function getToken(authHeader) {
 
   const split = authHeader.split(' ')
   const token = split[1]
-
+  console.log("token after split: " + token)
   return token
 }

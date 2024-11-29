@@ -59,6 +59,7 @@ export default function App() {
 }
 
 function generateCurrentPage(isAuthenticated) {
+  console.log("isAuthenticated: " + isAuthenticated)
   if (!isAuthenticated) {
     return <LogIn />
   }

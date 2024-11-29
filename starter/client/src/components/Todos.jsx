@@ -17,6 +17,8 @@ import { deleteTodo, getTodos, patchTodo } from '../api/todos-api'
 import { NewTodoInput } from './NewTodoInput'
 
 export function Todos() {
+  const domain = process.env.REACT_APP_AUTH0_DOMAIN
+
   function renderTodos() {
     if (loadingTodos) {
       return renderLoading()
@@ -75,9 +77,10 @@ export function Todos() {
   }
 
   async function onTodoDelete(todoId) {
+    const domain = process.env.REACT_APP_AUTH0_DOMAIN
     try {
       const accessToken = await getAccessTokenSilently({
-        audience: `https://test-endpoint.auth0.com/api/v2/`,
+        audience: `https://${domain}/api/v2/`,
         scope: 'delete:todo'
       })
       await deleteTodo(accessToken, todoId)
@@ -91,7 +94,7 @@ export function Todos() {
     try {
       const todo = todos[pos]
       const accessToken = await getAccessTokenSilently({
-        audience: `https://test-endpoint.auth0.com/api/v2/`,
+        audience: `https://${domain}/api/v2/`,
         scope: 'write:todo'
       })
       await patchTodo(accessToken, todo.todoId, {
@@ -114,7 +117,7 @@ export function Todos() {
     navigate(`/todos/${todoId}/edit`)
   }
 
-  const { user, getAccessTokenSilently } = useAuth0()
+  const { user, getAccessTokenSilently, getIdTokenClaims } = useAuth0()
   const [todos, setTodos] = useState([])
   const [loadingTodos, setLoadingTodos] = useState(true)
   const navigate = useNavigate()
@@ -127,12 +130,9 @@ export function Todos() {
   useEffect(() => {
     async function foo() {
       try {
-        const accessToken = await getAccessTokenSilently({
-          audience: `https://test-endpoint.auth0.com/api/v2/`,
-          scope: 'read:todos'
-        })
-        console.log('Access token: ' + accessToken)
-        const todos = await getTodos(accessToken)
+        const accessToken = await getIdTokenClaims()
+        console.log('get ToDos Access token: ' + accessToken)
+        const todos = await getTodos(accessToken.__raw)
         setTodos(todos)
         setLoadingTodos(false)
       } catch (e) {

@@ -7,16 +7,17 @@ import { createTodo } from '../api/todos-api'
 export function NewTodoInput({ onNewTodo }) {
   const [newTodoName, setNewTodoName] = useState('')
 
-  const { getAccessTokenSilently } = useAuth0()
+  const { getAccessTokenSilently, getIdTokenClaims } = useAuth0()
 
   const onTodoCreate = async (event) => {
     try {
-      const accessToken = await getAccessTokenSilently({
-        audience: `https://test-endpoint.auth0.com/api/v2/`,
-        scope: 'write:todos'
-      })
+      const domain = process.env.REACT_APP_AUTH0_DOMAIN
+      const accessToken = await getAccessTokenSilently()
+      const idTokenClaimed = await getIdTokenClaims()
+      console.log("access token: " + accessToken)
+      console.log("idTokenClaimed: " + idTokenClaimed.__raw)
       const dueDate = calculateDueDate()
-      const createdTodo = await createTodo(accessToken, {
+      const createdTodo = await createTodo(idTokenClaimed.__raw, {
         name: newTodoName,
         dueDate
       })
