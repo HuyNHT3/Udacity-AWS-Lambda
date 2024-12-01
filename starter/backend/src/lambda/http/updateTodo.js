@@ -1,7 +1,60 @@
-export function handler(event) {
-  const todoId = event.pathParameters.todoId
-  const updatedTodo = JSON.parse(event.body)
+import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb'
+import { DynamoDB } from '@aws-sdk/client-dynamodb'
+import { response } from '../../utils/response.mjs'
+import { handler as auth0Handler } from '../auth/auth0Authorizer.mjs'
+import middy from '@middy/core'
+import cors from '@middy/http-cors'
+import httpErrorHandler from '@middy/http-error-handler'
 
-  // TODO: Update a TODO item with the provided id using values in the "updatedTodo" object
-  return undefined
-}
+export const handler = middy()
+  .use(httpErrorHandler())
+  .use(
+    cors({
+      credentials: true
+    })
+  ).handler(async (event) => {
+    let updateTodo = await JSON.parse(event.body)
+    const todoId = event.pathParameters.todoId
+    console.log("newTodo: " + JSON.stringify(newTodo))
+    const userInfo = await auth0Handler(event)
+    const userId = userInfo.principalId.split('|')[1]
+    console.log("userId: " + JSON.stringify(userId))
+
+    // handler(event)
+    // TODO: Implement creating a new TODO item
+    const dynamoDbDocument = DynamoDBDocument.from(new DynamoDB())
+
+    const params = {
+      TableName: "Todos-dev",
+      Key: {
+        userId: { S: userId },
+        todoId: { S: todoId },
+      },
+      UpdateExpression: 'SET #description = :description',
+      ExpressionAttributeNames: {
+        '#description': 'description'
+      },
+      ExpressionAttributeValues: {
+        ':description': { S: JSON.stringify(updateTodo) }
+      },
+      ReturnValues: 'UPDATED_NEW'
+    };
+    console.log ("add item: " + JSON.stringify(addedItem))
+
+    try {
+      const result = await dynamoDbDocument.update(params)
+      console.log('Item updated successfully:', result);
+      newTodo = {
+        "item": {
+          ...newTodo,
+        "todoId": todoId,
+        attachmentUrl: ""
+        }
+      }
+    }
+    catch (error) {
+      console.error('Error updating item:', error);
+    }
+
+    return await response(200, newTodo,'application/json')
+  })

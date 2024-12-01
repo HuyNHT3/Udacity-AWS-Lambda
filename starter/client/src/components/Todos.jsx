@@ -79,11 +79,8 @@ export function Todos() {
   async function onTodoDelete(todoId) {
     const domain = process.env.REACT_APP_AUTH0_DOMAIN
     try {
-      const accessToken = await getAccessTokenSilently({
-        audience: `https://${domain}/api/v2/`,
-        scope: 'delete:todo'
-      })
-      await deleteTodo(accessToken, todoId)
+      const accessToken =  await getIdTokenClaims()
+      await deleteTodo(accessToken.__raw, todoId)
       setTodos(todos.filter((todo) => todo.todoId !== todoId))
     } catch (e) {
       alert('Todo deletion failed')
@@ -93,11 +90,8 @@ export function Todos() {
   async function onTodoCheck(pos) {
     try {
       const todo = todos[pos]
-      const accessToken = await getAccessTokenSilently({
-        audience: `https://${domain}/api/v2/`,
-        scope: 'write:todo'
-      })
-      await patchTodo(accessToken, todo.todoId, {
+      const accessToken = await getIdTokenClaims()
+      await patchTodo(accessToken.__raw, todo.todoId, {
         name: todo.name,
         dueDate: todo.dueDate,
         done: !todo.done
