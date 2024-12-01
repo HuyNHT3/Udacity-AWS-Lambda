@@ -24,10 +24,11 @@ export const handler = middy()
 
     // handler(event)
     // TODO: Implement creating a new TODO item
+    const todoId = randomUUID()
     const dynamoDbDocument = DynamoDBDocument.from(new DynamoDB())
     const addedItem =  {
       userId: userId,       // Partition key
-      todoId: randomUUID(),       // Sort key
+      todoId: todoId,       // Sort key
       createdAt: new Date().toISOString(), // Attribute for LSI
       status: 'in-progress',   // Additional attribute
       description: JSON.stringify(newTodo)
@@ -42,7 +43,7 @@ export const handler = middy()
       newTodo = {
         "item": {
           ...newTodo,
-        "todoId": result.$metadata.requestId,
+        "todoId": todoId,
         "done": false,
         attachmentUrl: ""
         }

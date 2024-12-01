@@ -12,21 +12,28 @@ export const handler = middy()
     cors({
       credentials: true
     })
-  ). handler(async (event) => {
+  ).handler(async (event) => {
     const todoId = event.pathParameters.todoId
     const userInfo = await auth0Handler(event)
+    console.log("userInfo: " + userInfo)
+    const userId = userInfo.principalId.split('|')[1]
+    try {
+      const params = {
+        TableName: "Todos-dev",
+        Key: {
+          userId: userId,
+          todoId: todoId
+        }
+      };
+
+      const dynamoDbDocument = DynamoDBDocument.from(new DynamoDB())
+      const result = await dynamoDbDocument.delete(params);
+      console.log("Item deleted successfully:", result);
+    } catch (error) {
+      console.error("Error deleting item:", error);
+    }
 
     // TODO: Remove a TODO item by id
-    return response(200,todoId, 'application/json')
-  }) 
-  
-  
-  
-  
-//   {
-//   const todoId = event.pathParameters.todoId
-
-//   // TODO: Remove a TODO item by id
-//   return undefined
-// }
+    return response(200, todoId, 'application/json')
+  })
 

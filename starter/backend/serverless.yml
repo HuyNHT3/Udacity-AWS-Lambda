@@ -59,8 +59,14 @@ functions:
     handler: src/lambda/http/deleteTodo.handler
     events:
       - http:
+          cors: true
           method: delete
           path: 'todos/{todoId}'
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:DeleteItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}  
 
   GenerateUploadUrl:
     handler: src/lambda/http/generateUploadUrl.handler
