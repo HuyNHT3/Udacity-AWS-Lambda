@@ -14,7 +14,7 @@ export const handler = middy()
     })
   ).handler(async (event) => {
     const userInfo = await auth0Handler(event)
-
+    const s3ImagePath = "https://serverless-todo-bucket-dev.s3.us-east-1.amazonaws.com/"
     const documentClient = new DynamoDB()
     const dynamoDbClient = DynamoDBDocument.from(documentClient)
     const result = await dynamoDbClient.scan({
@@ -24,22 +24,22 @@ export const handler = middy()
     console.log("get todos: " + JSON.stringify(result));
 
     const responses = {
-      "items": buildItemList(result.Items)
+      "items": buildItemList(result.Items, s3ImagePath)
     }
 
      return await response(200, responses, 'application/json')
   })
 
-function buildItemList(resultItems) {
+function buildItemList(resultItems, s3ImagePath) {
   const mappedItems = resultItems.map(item => {
     return {
       "todoId": item.todoId,
       "userId": item.userId,
-      "attachmentUrl": "https://serverless-c4-todo-images.s3.amazonaws.com/605525c4-1234-4d23-b3ff-65b853344123",
+      "attachmentUrl": s3ImagePath + item.todoId +".JPG",
       "dueDate": JSON.parse(item.description).dueDate,
       "createdAt": item.createdAt,
       "name": JSON.parse(item.description).name,
-      "done": false
+      "done": JSON.parse(item.description).done
     }
   })
 

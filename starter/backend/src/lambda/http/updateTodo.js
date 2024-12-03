@@ -15,10 +15,14 @@ export const handler = middy()
   ).handler(async (event) => {
     let updateTodo = await JSON.parse(event.body)
     const todoId = event.pathParameters.todoId
-    console.log("newTodo: " + JSON.stringify(newTodo))
+    console.log("newTodo: " + JSON.stringify(updateTodo))
     const userInfo = await auth0Handler(event)
     const userId = userInfo.principalId.split('|')[1]
     console.log("userId: " + JSON.stringify(userId))
+    console.log("key: " + JSON.stringify({Key: {
+      userId: { S: userId },
+      todoId: { S: todoId },
+    }}))
 
     // handler(event)
     // TODO: Implement creating a new TODO item
@@ -27,26 +31,26 @@ export const handler = middy()
     const params = {
       TableName: "Todos-dev",
       Key: {
-        userId: { S: userId },
-        todoId: { S: todoId },
+        userId:  userId,
+        todoId:  todoId,
       },
       UpdateExpression: 'SET #description = :description',
       ExpressionAttributeNames: {
         '#description': 'description'
       },
       ExpressionAttributeValues: {
-        ':description': { S: JSON.stringify(updateTodo) }
+        ':description': JSON.stringify(updateTodo) 
       },
       ReturnValues: 'UPDATED_NEW'
     };
-    console.log ("add item: " + JSON.stringify(addedItem))
+    console.log ("add item: " + JSON.stringify(updateTodo))
 
     try {
       const result = await dynamoDbDocument.update(params)
       console.log('Item updated successfully:', result);
-      newTodo = {
+      updateTodo = {
         "item": {
-          ...newTodo,
+          ...updateTodo,
         "todoId": todoId,
         attachmentUrl: ""
         }
@@ -56,5 +60,5 @@ export const handler = middy()
       console.error('Error updating item:', error);
     }
 
-    return await response(200, newTodo,'application/json')
+    return await response(200, updateTodo,'application/json')
   })

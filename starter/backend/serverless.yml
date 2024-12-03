@@ -52,8 +52,14 @@ functions:
     handler: src/lambda/http/updateTodo.handler
     events:
       - http:
+          cors: true
           method: patch
           path: 'todos/{todoId}'
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:UpdateItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}       
 
   DeleteTodo:
     handler: src/lambda/http/deleteTodo.handler
@@ -72,8 +78,15 @@ functions:
     handler: src/lambda/http/generateUploadUrl.handler
     events:
       - http:
+          cors: true
           method: post
           path: 'todos/{todoId}/attachment'
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:GetObject
+      Resource: arn:aws:s3:::serverless-todo-bucket-dev/*
 
 resources:
   Resources:
